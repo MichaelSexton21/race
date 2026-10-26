@@ -38,7 +38,7 @@ export class Race {
     ];
     for (const c of casters) {
       const k = new Kart(c.name, c.color, c.isPlayer);
-      k.skillTop = 30 * (0.88 + Math.random() * 0.14);
+      k.skillTop = 30 * (0.92 + Math.random() * 0.14);
       k.lane = (Math.random() * 2 - 1) * (w / 4);
       const t = 0.985 - c.row * 0.012;
       const p = this.world.pointAtT(t);

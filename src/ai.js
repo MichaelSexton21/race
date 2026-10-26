@@ -44,11 +44,11 @@ export function aiInput(kart, world, race, dt, opts = {}) {
     const a = world.dirAtIdx((idx + s) % N).angleTo(world.dirAtIdx((idx + s + 14) % N));
     if (a > maxCurv) maxCurv = a;
   }
-  const base = kart.skillTop * (1 - Math.min(1, maxCurv * 2.2) * 0.6);
+  const base = kart.skillTop * (1 - Math.min(1, maxCurv * 1.7) * 0.45);
 
   const player = race.player;
   const gap = race.progressOf(player) - race.progressOf(kart);
-  const rubber = Math.max(0.86, Math.min(1.18, 1 + gap * 0.25));
+  const rubber = Math.max(0.9, Math.min(1.25, 1 + gap * 0.35));
   const ts = base * rubber;
   const throttle = vsp < ts ? 1 : vsp < ts + 4 ? 0 : -0.6;
 

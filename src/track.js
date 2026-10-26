@@ -394,7 +394,7 @@ export class TrackWorld {
       const pos = this.pointAtT(t);
       // A distinct patch covering well under half the road width, so it can
       // be steered around.
-      const r = Math.min(2.5, this.def.width * 0.2);
+      const r = Math.min(1.9, this.def.width * 0.16);
       const m = new THREE.Mesh(new THREE.CircleGeometry(r, 24), mat);
       m.rotation.x = -Math.PI / 2;
       m.position.set(pos.x, 0, pos.z);
