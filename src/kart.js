@@ -103,6 +103,7 @@ export class Kart {
     this.shieldMesh = shield;
 
     this.mesh = g;
+    this.mesh.rotation.order = 'YXZ';
   }
 
   useItem(race) {
@@ -156,6 +157,10 @@ export class Kart {
     if (input.throttle > 0) acc = boosting ? P.boostAccel : P.accel;
     else if (input.throttle < 0) acc = sp > 2 ? -P.brake : -P.reverseAccel;
     const f2 = this.forward();
+    const e = 2.2;
+    const hA = world.heightAt(this.pos.x + f2.x * e, this.pos.z + f2.z * e);
+    const hB = world.heightAt(this.pos.x - f2.x * e, this.pos.z - f2.z * e);
+    acc += -((hA - hB) / (2 * e)) * P.slopeAccel;
     this.vel.addScaledVector(f2, acc * dt);
 
     let vf = this.vel.dot(f2);
@@ -169,9 +174,11 @@ export class Kart {
     vf = Math.max(vf, P.reverseMax);
     this.vel.copy(f2).multiplyScalar(vf).add(lat);
     this.pos.addScaledVector(this.vel, dt);
+    this.pos.y = world.heightAt(this.pos.x, this.pos.z);
 
     this.mesh.position.copy(this.pos);
     this.mesh.rotation.y = this.heading;
+    this.mesh.rotation.x = -Math.atan2(hA - hB, 2 * e) * 0.85;
     const wspin = (sp * dt) / 0.33;
     for (const w of this.wheelMeshes) w.rotation.x += wspin;
     for (const p of this.frontPivots) p.rotation.y += (steer * 0.42 - p.rotation.y) * Math.min(1, 10 * dt);

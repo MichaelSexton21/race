@@ -22,21 +22,22 @@ export class Items {
       const p = world.pointAtT(t);
       const n = world.normalAtT(t);
       const count = r % 2 === 1 ? 4 : 3;
-      const spread = world.def.width * 0.36;
+      const spread = world.def.width * 0.3;
       for (let c = 0; c < count; c++) {
-        const off = count === 3 ? (c - 1) * spread : (c - 1.5) * spread * 0.66;
+        const off = count === 3 ? (c - 1) * spread * 0.8 : (c - 1.5) * spread * 0.62;
         const pos = p.clone().addScaledVector(n, off);
+        const baseY = world.heightAt(pos.x, pos.z);
         const mesh = new THREE.Mesh(this.boxGeo, this.boxMat);
-        mesh.position.set(pos.x, 1.1, pos.z);
+        mesh.position.set(pos.x, baseY + 1.1, pos.z);
         this.scene.add(mesh);
-        this.boxes.push({ pos, mesh, active: true, respawn: 0, phase: Math.random() * 6.28 });
+        this.boxes.push({ pos, mesh, active: true, respawn: 0, phase: Math.random() * 6.28, baseY });
       }
     }
   }
 
   spawnBanana(pos, owner) {
     const m = new THREE.Mesh(this.bananaGeo, this.bananaMat);
-    m.position.set(pos.x, 0.3, pos.z);
+    m.position.set(pos.x, this.world.heightAt(pos.x, pos.z) + 0.3, pos.z);
     m.rotation.x = -Math.PI / 2;
     m.castShadow = true;
     this.scene.add(m);
@@ -63,13 +64,13 @@ export class Items {
         continue;
       }
       b.mesh.rotation.y += 2.2 * dt;
-      b.mesh.position.y = 1.1 + Math.sin(t * 2.4 + b.phase) * 0.15;
+      b.mesh.position.y = b.baseY + 1.1 + Math.sin(t * 2.4 + b.phase) * 0.15;
     }
 
     for (const k of race.karts) {
       if (k.finished || k.item) continue;
       for (const b of this.boxes) {
-        if (b.active && b.pos.distanceToSquared(k.pos) < 2.4 * 2.4) {
+        if (b.active && b.pos.distanceToSquared(k.pos) < 3.1 * 3.1) {
           k.item = this.pickItem(race, k);
           b.active = false;
           b.mesh.visible = false;

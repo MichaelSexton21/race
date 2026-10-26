@@ -99,20 +99,21 @@ function bannerTexture(text) {
   });
 }
 
-function ribbonGeometry(pts, normals, halfW, y) {
+function ribbonGeometry(pts, normals, halfW, heights) {
   const n = pts.length;
   const pos = [];
   const uv = [];
   for (let i = 0; i < n; i++) {
     const a = pts[i], b = pts[(i + 1) % n];
     const na = normals[i], nb = normals[(i + 1) % n];
+    const ya = heights ? heights[i] : 0, yb = heights ? heights[(i + 1) % n] : 0;
     const alx = a.x + na.x * halfW, alz = a.z + na.z * halfW;
     const arx = a.x - na.x * halfW, arz = a.z - na.z * halfW;
     const blx = b.x + nb.x * halfW, blz = b.z + nb.z * halfW;
     const brx = b.x - nb.x * halfW, brz = b.z - nb.z * halfW;
     const va = i / n, vb = (i + 1) / n;
-    pos.push(alx, y, alz, arx, y, arz, brx, y, brz);
-    pos.push(alx, y, alz, brx, y, brz, blx, y, blz);
+    pos.push(alx, ya, alz, arx, ya, arz, brx, yb, brz);
+    pos.push(alx, ya, alz, brx, yb, brz, blx, yb, blz);
     uv.push(0, va, 1, vb, 1, vb);
     uv.push(0, va, 1, vb, 0, vb);
   }
@@ -121,6 +122,18 @@ function ribbonGeometry(pts, normals, halfW, y) {
   g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
   g.computeVertexNormals();
   return g;
+}
+
+function groundFit(geo, cx, cz, rz, hAt, lift) {
+  const p = geo.attributes.position;
+  const c = Math.cos(rz), s = Math.sin(rz);
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i), y = p.getY(i);
+    const xr = x * c - y * s, yr = x * s + y * c;
+    p.setZ(i, hAt(cx + xr, cz - yr) + lift);
+  }
+  p.needsUpdate = true;
+  geo.computeVertexNormals();
 }
 
 export class TrackWorld {
@@ -148,6 +161,8 @@ export class TrackWorld {
       d.normalize();
       this.normals[i] = new THREE.Vector3(d.z, 0, -d.x);
     }
+    this.heights = new Float32Array(N);
+    for (let i = 0; i < N; i++) this.heights[i] = this.heightAt(this.pts[i].x, this.pts[i].z);
     this.icePatches = [];
     this.boostPads = [];
     this.group = new THREE.Group();
@@ -169,6 +184,17 @@ export class TrackWorld {
     const d = new THREE.Vector3().subVectors(b, a);
     d.y = 0;
     return d.normalize();
+  }
+  heightAt(x, z) {
+    const e = this.def.elev;
+    if (!e) return 0;
+    const [f1, f2, f3] = e.f;
+    const [p1, p2, p3] = e.ph;
+    return e.amp * (
+      0.55 * Math.sin(x * f1 + p1) * Math.cos(z * f1 * 0.86 + p2) +
+      0.3 * Math.sin((x + z * 0.7) * f2 + p3) +
+      0.18 * Math.cos(x * f3 + z * f3 * 0.8 + p1 * 0.5)
+    );
   }
   nearestIndex(pos, hint) {
     const N = this.N;
@@ -209,18 +235,27 @@ export class TrackWorld {
     );
     gtx.repeat.set(groundSize / 24, groundSize / 24);
     const ground = new THREE.Mesh(
-      new THREE.PlaneGeometry(groundSize, groundSize),
+      new THREE.PlaneGeometry(groundSize, groundSize, 110, 110),
       new THREE.MeshLambertMaterial({ map: gtx })
     );
     ground.rotation.x = -Math.PI / 2;
     ground.position.set((b.minx + b.maxx) / 2, 0, (b.minz + b.maxz) / 2);
+    {
+      const gp = ground.geometry.attributes.position;
+      const cx = ground.position.x, cz = ground.position.z;
+      for (let i = 0; i < gp.count; i++) {
+        gp.setZ(i, this.heightAt(cx + gp.getX(i), cz - gp.getY(i)));
+      }
+      gp.needsUpdate = true;
+      ground.geometry.computeVertexNormals();
+    }
     ground.receiveShadow = true;
     this.group.add(ground);
 
     const ctx = curbTexture();
     ctx.repeat.set(1, this.length / 8);
     const curb = new THREE.Mesh(
-      ribbonGeometry(this.pts, this.normals, w / 2 + 1.7, 0.02),
+      ribbonGeometry(this.pts, this.normals, w / 2 + 1.7, this.heights),
       new THREE.MeshLambertMaterial({ map: ctx })
     );
     curb.receiveShadow = true;
@@ -229,13 +264,14 @@ export class TrackWorld {
     const rtx = roadTexture();
     rtx.repeat.set(1, this.length / 6);
     const road = new THREE.Mesh(
-      ribbonGeometry(this.pts, this.normals, w / 2, 0.04),
+      ribbonGeometry(this.pts, this.normals, w / 2, this.heights),
       new THREE.MeshLambertMaterial({ map: rtx })
     );
     road.receiveShadow = true;
     this.group.add(road);
 
     const start = this.pts[0];
+    const hStart = this.heightAt(start.x, start.z);
     const sdir = this.dirAtIdx(0);
     const checker = new THREE.Mesh(
       new THREE.PlaneGeometry(w, 3.2),
@@ -243,14 +279,15 @@ export class TrackWorld {
     );
     checker.rotation.x = -Math.PI / 2;
     checker.rotation.z = -Math.atan2(sdir.x, sdir.z);
-    checker.position.set(start.x, 0.05, start.z);
+    checker.position.set(start.x, 0, start.z);
+    groundFit(checker.geometry, start.x, start.z, checker.rotation.z, (x, z) => this.heightAt(x, z), 0.05);
     this.group.add(checker);
 
     const banner = new THREE.Mesh(
       new THREE.PlaneGeometry(w + 2, 3.4),
       new THREE.MeshBasicMaterial({ map: bannerTexture('START'), side: THREE.DoubleSide })
     );
-    banner.position.set(start.x, 5.4, start.z);
+    banner.position.set(start.x, hStart + 5.4, start.z);
     banner.rotation.y = Math.atan2(sdir.x, sdir.z);
     this.group.add(banner);
     const poleGeo = new THREE.CylinderGeometry(0.25, 0.25, 5.6, 8);
@@ -258,7 +295,8 @@ export class TrackWorld {
     const sleft = this.normals[0].clone().multiplyScalar((w + 2) / 2);
     for (const s of [1, -1]) {
       const pole = new THREE.Mesh(poleGeo, poleMat);
-      pole.position.set(start.x + sleft.x * s, 2.8, start.z + sleft.z * s);
+      const px = start.x + sleft.x * s, pz = start.z + sleft.z * s;
+      pole.position.set(px, this.heightAt(px, pz) + 2.8, pz);
       pole.castShadow = true;
       this.group.add(pole);
     }
@@ -290,6 +328,7 @@ export class TrackWorld {
         0,
         b.minz - 40 + Math.random() * (b.h + pad)
       );
+      p.y = this.heightAt(p.x, p.z);
       const idx = this.nearestIndex(p, null);
       const d = p.distanceTo(this.pts[idx]);
       if (d < def.width / 2 + 7 || d > def.width / 2 + 150) continue;
@@ -347,7 +386,8 @@ export class TrackWorld {
       const r = Math.min(5.5, this.def.width * 0.46);
       const m = new THREE.Mesh(new THREE.CircleGeometry(r, 24), mat);
       m.rotation.x = -Math.PI / 2;
-      m.position.set(pos.x, 0.045, pos.z);
+      m.position.set(pos.x, 0, pos.z);
+      groundFit(m.geometry, pos.x, pos.z, 0, (x, z) => this.heightAt(x, z), 0.05);
       this.group.add(m);
       this.icePatches.push({ pos: pos.clone(), radius: r });
     }
@@ -361,7 +401,8 @@ export class TrackWorld {
       const m = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 5.6), mat);
       m.rotation.x = -Math.PI / 2;
       m.rotation.z = -Math.atan2(dir.x, dir.z);
-      m.position.set(pos.x, 0.05, pos.z);
+      m.position.set(pos.x, 0, pos.z);
+      groundFit(m.geometry, pos.x, pos.z, m.rotation.z, (x, z) => this.heightAt(x, z), 0.05);
       this.group.add(m);
       this.boostPads.push({ pos: pos.clone(), cooldown: 0 });
     }

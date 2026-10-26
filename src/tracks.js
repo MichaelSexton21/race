@@ -21,7 +21,8 @@ export const TRACKS = [
     decorCount: 70,
     icePatches: [],
     boostPads: [0.16, 0.66],
-    boxRows: 8,
+    boxRows: 10,
+    elev: { amp: 6, f: [0.026, 0.021, 0.04], ph: [0.8, 2.3, 4.6] },
   },
   {
     id: 'desert',
@@ -45,7 +46,8 @@ export const TRACKS = [
     decorCount: 55,
     icePatches: [],
     boostPads: [0.12, 0.55, 0.8],
-    boxRows: 8,
+    boxRows: 10,
+    elev: { amp: 7, f: [0.024, 0.02, 0.038], ph: [2.1, 0.4, 3.9] },
   },
   {
     id: 'frost',
@@ -69,6 +71,7 @@ export const TRACKS = [
     decorCount: 75,
     icePatches: [0.3, 0.55, 0.8],
     boostPads: [0.06, 0.62],
-    boxRows: 8,
+    boxRows: 10,
+    elev: { amp: 8.5, f: [0.022, 0.018, 0.036], ph: [4.4, 3.2, 1.1] },
   },
 ];

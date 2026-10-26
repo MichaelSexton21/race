@@ -9,6 +9,9 @@ export class Input {
         if (e.code === 'Space') this.itemPressed = true;
         if (e.code === 'KeyR') this.actions.add('restart');
         if (e.code === 'Escape') this.actions.add('menu');
+        if (e.code === 'ArrowLeft') this.actions.add('left');
+        if (e.code === 'ArrowRight') this.actions.add('right');
+        if (e.code === 'Enter' || e.code === 'Space') this.actions.add('select');
       }
       this.keys.add(e.code);
     });

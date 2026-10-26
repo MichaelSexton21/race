@@ -105,6 +105,11 @@ function animate() {
   if (input.consumeAction('restart') && state === 'racing' && race) {
     startRace(TRACKS.indexOf(race.trackDef));
   }
+  if (state === 'menu') {
+    if (input.consumeAction('left')) ui.moveSelection(-1);
+    if (input.consumeAction('right')) ui.moveSelection(1);
+    if (input.consumeAction('select')) startRace(ui.selected);
+  }
 
   if (race && state !== 'menu') {
     race.update(dt);
@@ -113,12 +118,12 @@ function animate() {
     const behind = 9 + Math.min(4, Math.abs(p.speed()) * 0.06);
     const desired = new THREE.Vector3(
       p.pos.x - f.x * behind,
-      4.2,
+      p.pos.y + 4.2,
       p.pos.z - f.z * behind
     );
     const k = 1 - Math.exp(-7 * dt);
     camera.position.lerp(desired, k);
-    camTarget.set(p.pos.x + f.x * 4, 1.2, p.pos.z + f.z * 4);
+    camTarget.set(p.pos.x + f.x * 4, p.pos.y + 1.2, p.pos.z + f.z * 4);
     camera.lookAt(camTarget);
     const boosting = p.boostTimer > 0;
     const targetFov = boosting ? 78 : 65;

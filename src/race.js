@@ -26,6 +26,7 @@ export class Race {
     this.karts = [];
     this.state = 'countdown';
     this.countT = 3.6;
+    this.goFlash = 0;
     this.lastLabel = '';
     this.raceT = 0;
     this.resultsShown = false;
@@ -37,13 +38,15 @@ export class Race {
     ];
     for (const c of casters) {
       const k = new Kart(c.name, c.color, c.isPlayer);
-      k.skillTop = 30 * (0.85 + Math.random() * 0.12);
+      k.skillTop = 30 * (0.88 + Math.random() * 0.14);
       k.lane = (Math.random() * 2 - 1) * (w / 4);
       const t = 0.985 - c.row * 0.012;
       const p = this.world.pointAtT(t);
       const n = this.world.normalAtT(t);
       const d = this.world.dirAtIdx(Math.floor(t * this.world.N) % this.world.N);
-      k.pos.set(p.x + n.x * c.side * w * 0.22, 0, p.z + n.z * c.side * w * 0.22);
+      const gx = p.x + n.x * c.side * w * 0.22;
+      const gz = p.z + n.z * c.side * w * 0.22;
+      k.pos.set(gx, this.world.heightAt(gx, gz), gz);
       k.heading = Math.atan2(d.x, d.z);
       k.trackIdx = this.world.nearestIndex(k.pos, null);
       k.prevT = this.world.cum[k.trackIdx] / this.world.length;
@@ -83,6 +86,14 @@ export class Race {
   lapCheck(k) {
     const t = this.world.cum[k.trackIdx] / this.world.length;
     if (k.prevT != null) {
+      const delta = (t - k.prevT + 1) % 1;
+      // Off-track, the nearest track index can jump backward a large amount; a
+      // genuine per-frame step is always tiny. Ignore checkpoint logic on big
+      // jumps so an off-road kart can't fake-cross checkpoints / finish early.
+      if (delta > 0.05) {
+        k.prevT = t;
+        return;
+      }
       const nextV = k.nextCp < 3 ? CP_TS[k.nextCp] : 0;
       if (crossed(k.prevT, t, nextV)) {
         if (k.nextCp === 3) {
@@ -138,7 +149,12 @@ export class Race {
       }
       if (this.countT <= 0) {
         this.state = 'racing';
+        this.goFlash = 0.9;
       }
+    }
+    if (this.goFlash > 0) {
+      this.goFlash -= dt;
+      if (this.goFlash <= 0) this.ui.hideCountdown();
     }
 
     for (const k of this.karts) {

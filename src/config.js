@@ -27,6 +27,7 @@ export const PHYS = {
   driftGrip: 2.0,
   grip: 8.0,
   iceGrip: 1.1,
+  slopeAccel: 14,
   slipTime: 1.0,
   shieldTime: 4.0,
   bananaLife: 14,

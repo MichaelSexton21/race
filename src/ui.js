@@ -37,6 +37,7 @@ export class UI {
     this.el.results.classList.add('hidden');
     this.el.countdown.classList.add('hidden');
     this.el.cards.innerHTML = '';
+    this.cardCount = tracks.length;
     tracks.forEach((t, i) => {
       const card = document.createElement('div');
       card.className = 'card' + (i === this.selected ? ' selected' : '');
@@ -54,14 +55,21 @@ export class UI {
       tag.className = 'card-tag';
       tag.textContent = t.tagline;
       card.append(cv, name, diff, tag);
-      card.addEventListener('click', () => {
-        this.selected = i;
-        document.querySelectorAll('.card').forEach((c) => c.classList.remove('selected'));
-        card.classList.add('selected');
-      });
+      card.addEventListener('click', () => this.selectCard(i));
       this.el.cards.appendChild(card);
     });
+    this.selectCard(Math.min(this.selected, this.cardCount - 1));
     document.getElementById('start-btn').onclick = () => onStart(this.selected);
+  }
+
+  selectCard(i) {
+    this.selected = i;
+    const cards = this.el.cards.children;
+    for (let j = 0; j < cards.length; j++) cards[j].classList.toggle('selected', i === j);
+  }
+
+  moveSelection(d) {
+    this.selectCard((this.selected + d + this.cardCount) % this.cardCount);
   }
 
   drawTrackPreview(cv, t) {
@@ -180,6 +188,10 @@ export class UI {
     this.el.countdown.classList.remove('pop');
     void this.el.countdown.offsetWidth;
     this.el.countdown.classList.add('pop');
+  }
+
+  hideCountdown() {
+    this.el.countdown.classList.add('hidden');
   }
 
   lapBanner(text) {
