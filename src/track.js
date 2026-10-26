@@ -252,10 +252,19 @@ export class TrackWorld {
     ground.receiveShadow = true;
     this.group.add(ground);
 
+    // Keep a clear vertical stack above the terrain so the overlapping ribbons
+    // never z-fight: ground < curb < road < checker/ice/pads (which sit at +0.05).
+    const curbH = new Float32Array(this.heights.length);
+    const roadH = new Float32Array(this.heights.length);
+    for (let i = 0; i < this.heights.length; i++) {
+      curbH[i] = this.heights[i] + 0.02;
+      roadH[i] = this.heights[i] + 0.04;
+    }
+
     const ctx = curbTexture();
     ctx.repeat.set(1, this.length / 8);
     const curb = new THREE.Mesh(
-      ribbonGeometry(this.pts, this.normals, w / 2 + 1.7, this.heights),
+      ribbonGeometry(this.pts, this.normals, w / 2 + 1.7, curbH),
       new THREE.MeshLambertMaterial({ map: ctx })
     );
     curb.receiveShadow = true;
@@ -264,7 +273,7 @@ export class TrackWorld {
     const rtx = roadTexture();
     rtx.repeat.set(1, this.length / 6);
     const road = new THREE.Mesh(
-      ribbonGeometry(this.pts, this.normals, w / 2, this.heights),
+      ribbonGeometry(this.pts, this.normals, w / 2, roadH),
       new THREE.MeshLambertMaterial({ map: rtx })
     );
     road.receiveShadow = true;
