@@ -38,7 +38,7 @@ export class Race {
     ];
     for (const c of casters) {
       const k = new Kart(c.name, c.color, c.isPlayer);
-      k.skillTop = 30 * (0.92 + Math.random() * 0.14);
+      k.skillTop = 30 * (0.97 + Math.random() * 0.12);
       k.lane = (Math.random() * 2 - 1) * (w / 4);
       const t = 0.985 - c.row * 0.012;
       const p = this.world.pointAtT(t);
@@ -46,7 +46,7 @@ export class Race {
       const d = this.world.dirAtIdx(Math.floor(t * this.world.N) % this.world.N);
       const gx = p.x + n.x * c.side * w * 0.22;
       const gz = p.z + n.z * c.side * w * 0.22;
-      k.pos.set(gx, this.world.heightAt(gx, gz) + 0.05, gz);
+      k.pos.set(gx, this.world.heightAt(gx, gz) + 0.12, gz);
       k.heading = Math.atan2(d.x, d.z);
       k.trackIdx = this.world.nearestIndex(k.pos, null);
       k.prevT = this.world.cum[k.trackIdx] / this.world.length;

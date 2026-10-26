@@ -174,14 +174,19 @@ export class Kart {
     vf = Math.max(vf, P.reverseMax);
     this.vel.copy(f2).multiplyScalar(vf).add(lat);
     this.pos.addScaledVector(this.vel, dt);
-    // Ride at the road surface level (road sits at heightAt + 0.04) so the
-    // wheels never clip into the asphalt.
-    this.pos.y = world.heightAt(this.pos.x, this.pos.z) + 0.05;
+    // Ride a clear margin above the road surface (road sits at heightAt + 0.04)
+    // so the pitched wheels never dip into the asphalt on slopes / curves.
+    this.pos.y = world.heightAt(this.pos.x, this.pos.z) + 0.12;
 
     this.mesh.position.copy(this.pos);
     this.mesh.rotation.y = this.heading;
-    // Pitch by the full slope so the wheel line matches the road surface.
-    this.mesh.rotation.x = -Math.atan2(hA - hB, 2 * e);
+    // Pitch by the slope across the wheelbase (where the wheels actually are)
+    // so the wheels sit on the road; smooth it to avoid jitter on bumpy terrain.
+    const we = 0.72;
+    const wA = world.heightAt(this.pos.x + f2.x * we, this.pos.z + f2.z * we);
+    const wB = world.heightAt(this.pos.x - f2.x * we, this.pos.z - f2.z * we);
+    const targetPitch = -Math.atan2(wA - wB, 2 * we);
+    this.mesh.rotation.x += (targetPitch - this.mesh.rotation.x) * Math.min(1, 14 * dt);
     const wspin = (sp * dt) / 0.33;
     for (const w of this.wheelMeshes) w.rotation.x += wspin;
     for (const p of this.frontPivots) p.rotation.y += (steer * 0.42 - p.rotation.y) * Math.min(1, 10 * dt);

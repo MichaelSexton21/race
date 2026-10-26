@@ -44,11 +44,11 @@ export function aiInput(kart, world, race, dt, opts = {}) {
     const a = world.dirAtIdx((idx + s) % N).angleTo(world.dirAtIdx((idx + s + 14) % N));
     if (a > maxCurv) maxCurv = a;
   }
-  const base = kart.skillTop * (1 - Math.min(1, maxCurv * 1.7) * 0.45);
+  const base = kart.skillTop * (1 - Math.min(1, maxCurv * 1.2) * 0.32);
 
   const player = race.player;
   const gap = race.progressOf(player) - race.progressOf(kart);
-  const rubber = Math.max(0.9, Math.min(1.25, 1 + gap * 0.35));
+  const rubber = Math.max(0.9, Math.min(1.4, 1 + gap * 0.55));
   const ts = base * rubber;
   const throttle = vsp < ts ? 1 : vsp < ts + 4 ? 0 : -0.6;
 
@@ -60,7 +60,7 @@ function aiUseItem(k, race, dt) {
   if (!k.item || k.finished) return;
   const prog = (k) => race.progressOf(k);
   if (k.item === 'boost') {
-    if (Math.random() < dt * 1.4 && prog(k) >= prog(race.player) - 0.04) k.useItem(race);
+    if (Math.random() < dt * 2.2 && prog(k) >= prog(race.player) - 0.06) k.useItem(race);
   } else if (k.item === 'banana') {
     let rear = Infinity;
     for (const o of race.karts) {

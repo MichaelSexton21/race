@@ -99,21 +99,26 @@ function bannerTexture(text) {
   });
 }
 
-function ribbonGeometry(pts, normals, halfW, heights) {
+// Each ribbon vertex samples its own height via yAt(x, z) so the strip drapes
+// over the terrain across its full width. A flat (centerline-only) ribbon would
+// otherwise sink its edges into the ground on cross-slopes and cover anything
+// riding heightAt + a small offset.
+function ribbonGeometry(pts, normals, halfW, yAt) {
   const n = pts.length;
   const pos = [];
   const uv = [];
   for (let i = 0; i < n; i++) {
     const a = pts[i], b = pts[(i + 1) % n];
     const na = normals[i], nb = normals[(i + 1) % n];
-    const ya = heights ? heights[i] : 0, yb = heights ? heights[(i + 1) % n] : 0;
     const alx = a.x + na.x * halfW, alz = a.z + na.z * halfW;
     const arx = a.x - na.x * halfW, arz = a.z - na.z * halfW;
     const blx = b.x + nb.x * halfW, blz = b.z + nb.z * halfW;
     const brx = b.x - nb.x * halfW, brz = b.z - nb.z * halfW;
+    const yAL = yAt(alx, alz), yAR = yAt(arx, arz);
+    const yBL = yAt(blx, blz), yBR = yAt(brx, brz);
     const va = i / n, vb = (i + 1) / n;
-    pos.push(alx, ya, alz, arx, ya, arz, brx, yb, brz);
-    pos.push(alx, ya, alz, brx, yb, brz, blx, yb, blz);
+    pos.push(alx, yAL, alz, arx, yAR, arz, brx, yBR, brz);
+    pos.push(alx, yAL, alz, brx, yBR, brz, blx, yBL, blz);
     uv.push(0, va, 1, vb, 1, vb);
     uv.push(0, va, 1, vb, 0, vb);
   }
@@ -161,8 +166,6 @@ export class TrackWorld {
       d.normalize();
       this.normals[i] = new THREE.Vector3(d.z, 0, -d.x);
     }
-    this.heights = new Float32Array(N);
-    for (let i = 0; i < N; i++) this.heights[i] = this.heightAt(this.pts[i].x, this.pts[i].z);
     this.icePatches = [];
     this.boostPads = [];
     this.group = new THREE.Group();
@@ -254,17 +257,12 @@ export class TrackWorld {
 
     // Keep a clear vertical stack above the terrain so the overlapping ribbons
     // never z-fight: ground < curb < road < checker/ice/pads (which sit at +0.05).
-    const curbH = new Float32Array(this.heights.length);
-    const roadH = new Float32Array(this.heights.length);
-    for (let i = 0; i < this.heights.length; i++) {
-      curbH[i] = this.heights[i] + 0.02;
-      roadH[i] = this.heights[i] + 0.04;
-    }
-
+    // Each ribbon drapes over the terrain across its width (see ribbonGeometry),
+    // so the snow/ground never pokes through the road edges on cross-slopes.
     const ctx = curbTexture();
     ctx.repeat.set(1, this.length / 8);
     const curb = new THREE.Mesh(
-      ribbonGeometry(this.pts, this.normals, w / 2 + 1.7, curbH),
+      ribbonGeometry(this.pts, this.normals, w / 2 + 1.7, (x, z) => this.heightAt(x, z) + 0.02),
       new THREE.MeshLambertMaterial({ map: ctx })
     );
     curb.receiveShadow = true;
@@ -273,7 +271,7 @@ export class TrackWorld {
     const rtx = roadTexture();
     rtx.repeat.set(1, this.length / 6);
     const road = new THREE.Mesh(
-      ribbonGeometry(this.pts, this.normals, w / 2, roadH),
+      ribbonGeometry(this.pts, this.normals, w / 2, (x, z) => this.heightAt(x, z) + 0.04),
       new THREE.MeshLambertMaterial({ map: rtx })
     );
     road.receiveShadow = true;
@@ -287,7 +285,10 @@ export class TrackWorld {
       new THREE.MeshLambertMaterial({ map: checkerTexture() })
     );
     checker.rotation.x = -Math.PI / 2;
-    checker.rotation.z = -Math.atan2(sdir.x, sdir.z);
+    // Yaw so the checkered strip spans ACROSS the road (along the track
+    // normal) and is 3.2 units along the track direction — perpendicular to
+    // the road, not parallel to it.
+    checker.rotation.z = Math.atan2(sdir.x, sdir.z);
     checker.position.set(start.x, 0, start.z);
     groundFit(checker.geometry, start.x, start.z, checker.rotation.z, (x, z) => this.heightAt(x, z), 0.05);
     this.group.add(checker);
