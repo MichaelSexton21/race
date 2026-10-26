@@ -46,7 +46,7 @@ export class Race {
       const d = this.world.dirAtIdx(Math.floor(t * this.world.N) % this.world.N);
       const gx = p.x + n.x * c.side * w * 0.22;
       const gz = p.z + n.z * c.side * w * 0.22;
-      k.pos.set(gx, this.world.heightAt(gx, gz), gz);
+      k.pos.set(gx, this.world.heightAt(gx, gz) + 0.05, gz);
       k.heading = Math.atan2(d.x, d.z);
       k.trackIdx = this.world.nearestIndex(k.pos, null);
       k.prevT = this.world.cum[k.trackIdx] / this.world.length;

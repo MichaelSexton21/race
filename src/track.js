@@ -392,7 +392,9 @@ export class TrackWorld {
     const mat = new THREE.MeshLambertMaterial({ color: 0x9fd4ff, transparent: true, opacity: 0.55 });
     for (const t of this.def.icePatches) {
       const pos = this.pointAtT(t);
-      const r = Math.min(5.5, this.def.width * 0.46);
+      // A distinct patch covering well under half the road width, so it can
+      // be steered around.
+      const r = Math.min(2.5, this.def.width * 0.2);
       const m = new THREE.Mesh(new THREE.CircleGeometry(r, 24), mat);
       m.rotation.x = -Math.PI / 2;
       m.position.set(pos.x, 0, pos.z);
@@ -407,7 +409,7 @@ export class TrackWorld {
     for (const t of this.def.boostPads) {
       const pos = this.pointAtT(t);
       const dir = this.dirAtIdx(Math.floor(t * this.N) % this.N);
-      const m = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 5.6), mat);
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(3.0, 5.6), mat);
       m.rotation.x = -Math.PI / 2;
       m.rotation.z = -Math.atan2(dir.x, dir.z);
       m.position.set(pos.x, 0, pos.z);
