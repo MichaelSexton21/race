@@ -25,10 +25,12 @@ export class UI {
       minimap: document.getElementById('minimap'),
       resultsTitle: document.getElementById('results-title'),
       resultsTable: document.getElementById('results-table'),
+      touch: document.getElementById('touch-controls'),
     };
     this.selected = 0;
     this.mapBase = null;
     this.mapTransform = null;
+    this.isTouch = matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0;
   }
 
   showMenu(tracks, onStart) {
@@ -36,6 +38,7 @@ export class UI {
     this.el.hud.classList.add('hidden');
     this.el.results.classList.add('hidden');
     this.el.countdown.classList.add('hidden');
+    this.el.touch.classList.add('hidden');
     this.el.cards.innerHTML = '';
     this.cardCount = tracks.length;
     tracks.forEach((t, i) => {
@@ -106,6 +109,7 @@ export class UI {
     this.el.menu.classList.add('hidden');
     this.el.results.classList.add('hidden');
     this.el.hud.classList.remove('hidden');
+    this.el.touch.classList.toggle('hidden', !this.isTouch);
     const world = race.world;
     const b = world.boundsInfo;
     const size = this.el.minimap;
@@ -207,6 +211,7 @@ export class UI {
   showResults(standings, playerRank, race) {
     this.el.countdown.classList.add('hidden');
     this.el.hud.classList.add('hidden');
+    this.el.touch.classList.add('hidden');
     this.el.results.classList.remove('hidden');
     this.el.resultsTitle.textContent =
       playerRank === 1 ? 'VICTORY!' : `FINISHED ${ORDINALS[playerRank - 1].toUpperCase()}`;

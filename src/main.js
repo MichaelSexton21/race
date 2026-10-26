@@ -9,9 +9,11 @@ const input = new Input();
 const audio = new AudioFX();
 const ui = new UI();
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
+if (input.isTouch) document.body.classList.add('touch');
+
+const renderer = new THREE.WebGLRenderer({ antialias: !input.isTouch });
 renderer.setSize(innerWidth, innerHeight);
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setPixelRatio(Math.min(devicePixelRatio, input.isTouch ? 1.5 : 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
@@ -24,13 +26,20 @@ const hemi = new THREE.HemisphereLight(0xffffff, 0x445544, 0.9);
 scene.add(hemi);
 const sun = new THREE.DirectionalLight(0xffffff, 1.6);
 sun.castShadow = true;
-sun.shadow.mapSize.set(2048, 2048);
+const SHADOW = input.isTouch ? 1024 : 2048;
+sun.shadow.mapSize.set(SHADOW, SHADOW);
 sun.shadow.bias = -0.0005;
 scene.add(sun);
 scene.add(sun.target);
 
 let race = null;
 let state = 'menu';
+
+function baseFov() {
+  // Widen FOV on narrow (portrait) screens so the track isn't letterboxed
+  const a = camera.aspect;
+  return a < 0.9 ? 80 : a < 1.2 ? 72 : 65;
+}
 
 addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
@@ -75,7 +84,7 @@ function startRace(trackIdx) {
   race = new Race(scene, def, input, audio, ui);
   ui.beginRace(race);
   state = 'racing';
-  camera.fov = 65;
+  camera.fov = baseFov();
   camera.updateProjectionMatrix();
 }
 
@@ -126,7 +135,7 @@ function animate() {
     camTarget.set(p.pos.x + f.x * 4, p.pos.y + 1.2, p.pos.z + f.z * 4);
     camera.lookAt(camTarget);
     const boosting = p.boostTimer > 0;
-    const targetFov = boosting ? 78 : 65;
+    const targetFov = baseFov() + (boosting ? 13 : 0);
     camera.fov += (targetFov - camera.fov) * Math.min(1, 8 * dt);
     camera.updateProjectionMatrix();
   }

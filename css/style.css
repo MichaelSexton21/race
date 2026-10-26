@@ -8,9 +8,16 @@ html, body {
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   color: #eef3f8;
   user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  overscroll-behavior: none;
 }
 
 canvas { display: block; }
+
+.help-touch { display: none; }
+body.touch .help-touch { display: flex; }
+body.touch .help-keys { display: none; }
 
 .hidden { display: none !important; }
 
@@ -240,3 +247,82 @@ canvas { display: block; }
 #results-table .pos.p3 { color: #d08a4e; font-weight: 900; }
 
 #results .row { display: flex; gap: 14px; }
+
+/* ---------- touch controls ---------- */
+#touch-controls {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 6;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 0 14px calc(14px + env(safe-area-inset-bottom, 0px));
+  pointer-events: none;
+}
+
+.tc-left, .tc-right { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.tc-row { display: flex; gap: 12px; align-items: center; }
+
+.tc-btn {
+  pointer-events: auto;
+  min-width: 74px;
+  min-height: 74px;
+  padding: 0 18px;
+  border-radius: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.28);
+  background: rgba(10, 18, 28, 0.45);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  color: #eef3f8;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  cursor: pointer;
+}
+.tc-btn:active, .tc-btn.held {
+  background: rgba(255, 210, 59, 0.35);
+  border-color: #ffd23b;
+  transform: scale(0.97);
+}
+.tc-steer { font-size: 26px; }
+.tc-gas {
+  min-width: 88px;
+  min-height: 88px;
+  border-radius: 50%;
+  font-size: 18px;
+  background: rgba(255, 112, 67, 0.35);
+  border-color: rgba(255, 150, 100, 0.6);
+}
+.tc-brake { min-height: 74px; }
+
+/* ---------- small screens ---------- */
+@media (max-width: 820px) {
+  #menu h1 { font-size: 40px; letter-spacing: 2px; }
+  #menu .sub { font-size: 13px; }
+  .card { width: 170px; }
+  .card canvas { height: 100px; }
+  .help { gap: 10px 14px; font-size: 12px; }
+  #countdown { font-size: 110px; }
+  #banner { font-size: 34px; }
+  #hud-left { top: 12px; left: 12px; padding: 8px 12px; }
+  #hud-pos { font-size: 30px; }
+  #hud-lap, #hud-time { font-size: 13px; }
+  #minimap { width: 120px; height: 120px; top: 12px; right: 12px; }
+  #item-slot { width: 72px; height: 72px; bottom: 20px; left: 12px; }
+  #item-label { font-size: 10px; }
+  #hud-speed { font-size: 32px; bottom: 22px; right: 16px; padding: 4px 14px; }
+  #results .panel { padding: 22px 24px; gap: 14px; max-width: 92vw; }
+  #results-title { font-size: 30px; }
+  #results-table { width: min(320px, 78vw); }
+}
+
+/* Touch layout: lift HUD readouts clear of the on-screen pads */
+body.touch {
+  #item-slot { bottom: calc(190px + env(safe-area-inset-bottom, 0px)); }
+  #hud-speed { bottom: calc(196px + env(safe-area-inset-bottom, 0px)); }
+}

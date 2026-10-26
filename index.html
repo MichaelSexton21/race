@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
   <title>Kart Racer</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='42' fill='%23ffd23b'/%3E%3Ccircle cx='50' cy='50' r='18' fill='%23101822'/%3E%3C/svg%3E"/>
   <link rel="stylesheet" href="css/style.css"/>
@@ -16,13 +17,36 @@
     <p class="sub">3-lap arcade racing against 5 rivals &mdash; pick your circuit</p>
     <div id="track-cards"></div>
     <button id="start-btn" class="btn big">START RACE</button>
-    <div class="help">
+    <div class="help help-keys">
       <div><b>Drive</b> WASD / Arrows</div>
       <div><b>Pick track</b> &larr; &rarr; + Enter</div>
       <div><b>Drift</b> Shift</div>
       <div><b>Item</b> Space</div>
       <div><b>Restart</b> R</div>
       <div><b>Menu</b> Esc</div>
+    </div>
+    <div class="help help-touch">
+      <div><b>Steer</b> left pad</div>
+      <div><b>Speed</b> GAS / BRAKE</div>
+      <div><b>Drift</b> DRIFT while turning</div>
+      <div><b>Item</b> ITEM button</div>
+    </div>
+  </div>
+
+  <div id="touch-controls" class="hidden">
+    <div class="tc-left">
+      <button class="tc-btn" id="tc-drift">DRIFT</button>
+      <div class="tc-row">
+        <button class="tc-btn tc-steer" id="tc-left" aria-label="steer left">&#9664;</button>
+        <button class="tc-btn tc-steer" id="tc-right" aria-label="steer right">&#9654;</button>
+      </div>
+    </div>
+    <div class="tc-right">
+      <button class="tc-btn" id="tc-item">ITEM</button>
+      <div class="tc-row">
+        <button class="tc-btn tc-brake" id="tc-brake">BRAKE</button>
+        <button class="tc-btn tc-gas" id="tc-gas">GAS</button>
+      </div>
     </div>
   </div>
 
