@@ -18,6 +18,14 @@ export class Input {
       this.keys.add(e.code);
     });
     addEventListener('keyup', (e) => this.keys.delete(e.code));
+    const itemSlot = document.getElementById('item-slot');
+    if (itemSlot) {
+      itemSlot.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        this.itemPressed = true;
+      });
+      if (this.isTouch) itemSlot.addEventListener('contextmenu', (e) => e.preventDefault());
+    }
     if (this.isTouch) this.bindTouch();
   }
 
@@ -43,14 +51,6 @@ export class Input {
     hold('tc-left', 'left');
     hold('tc-right', 'right');
     hold('tc-drift', 'drift');
-    const item = document.getElementById('tc-item');
-    if (item) {
-      item.addEventListener('pointerdown', (e) => {
-        e.preventDefault();
-        this.itemPressed = true;
-      });
-      item.addEventListener('contextmenu', (e) => e.preventDefault());
-    }
     document.addEventListener('gesturestart', (e) => e.preventDefault());
   }
 

@@ -21,6 +21,7 @@ export class UI {
       lap: document.getElementById('hud-lap'),
       time: document.getElementById('hud-time'),
       item: document.getElementById('item-label'),
+      itemSlot: document.getElementById('item-slot'),
       speed: document.getElementById('hud-speed'),
       minimap: document.getElementById('minimap'),
       resultsTitle: document.getElementById('results-title'),
@@ -146,6 +147,7 @@ export class UI {
     this.el.time.textContent = '0:00.0';
     this.el.item.textContent = '—';
     this.el.item.style.color = '#8899aa';
+    this.el.itemSlot.classList.remove('has-item');
     this.el.speed.innerHTML = `0<span>km/h</span>`;
   }
 
@@ -159,9 +161,11 @@ export class UI {
       const info = ITEM_INFO[p.item];
       this.el.item.textContent = info.label;
       this.el.item.style.color = info.color;
+      this.el.itemSlot.classList.add('has-item');
     } else {
       this.el.item.textContent = '—';
       this.el.item.style.color = '#8899aa';
+      this.el.itemSlot.classList.remove('has-item');
     }
     this.el.speed.innerHTML = `${Math.round(Math.abs(p.speed()) * 3.6)}<span>km/h</span>`;
 

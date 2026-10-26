@@ -297,7 +297,7 @@ export class TrackWorld {
       new THREE.MeshBasicMaterial({ map: bannerTexture('START'), side: THREE.DoubleSide })
     );
     banner.position.set(start.x, hStart + 5.4, start.z);
-    banner.rotation.y = Math.atan2(sdir.x, sdir.z);
+    banner.rotation.y = Math.atan2(sdir.x, sdir.z) + Math.PI;
     this.group.add(banner);
     const poleGeo = new THREE.CylinderGeometry(0.25, 0.25, 5.6, 8);
     const poleMat = new THREE.MeshLambertMaterial({ color: 0xd8d8e0 });

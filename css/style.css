@@ -152,7 +152,11 @@ body.touch .help-keys { display: none; }
   display: flex;
   align-items: center;
   justify-content: center;
+  pointer-events: auto;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
+#item-slot.has-item { border-color: #ffd23b; box-shadow: 0 0 18px rgba(255, 210, 59, 0.4); }
 #item-label { font-size: 12px; font-weight: 800; letter-spacing: 1px; }
 
 #hud-speed {
